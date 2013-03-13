@@ -1,11 +1,10 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'url-cmdline/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "url-cmdline"
-  gem.version       = Url::Cmdline::VERSION
+  gem.version       = "0.0.1"
   gem.authors       = ["and"]
   gem.email         = ["end.huang@huangqiheng"]
   gem.description   = %q{TODO: Write a gem description}

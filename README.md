@@ -2,28 +2,39 @@
 
 TODO: Write a gem description
 
-## Installation
+## 准备环境
 
-Add this line to your application's Gemfile:
+### 修改varnish配置文件
+```sh
+vim /etc/default/varnish
+# 1) 将配置中的以下内容注释掉
+# -a :6081	默认使用80监听，如果前置还有nginx，则应和nginx配置对应
+# -S /etc/varnish/secret 这里的意思是不需要认证，因为klarlack包好象还不支持
 
-    gem 'url-cmdline'
+# 2) 管理端监听地址，修改可为内网ip地址例如192.178.177.31
+# -T localhost:6082 
 
-And then execute:
+# 3) 最后从启varnish进程
+service varnish restart
 
-    $ bundle
+# 查看是否已经正确监听了端口
+netstat -lnp | grep varnish
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      16827/varnishd  
+tcp        0      0 127.0.0.1:6082          0.0.0.0:*               LISTEN      16826/varnishd  
+tcp6       0      0 :::80                   :::*                    LISTEN      16827/varnishd 
+```
 
-Or install it yourself as:
+## 安装
 
-    $ gem install url-cmdline
+```sh
+cd ~
+git https://github.com/huangqiheng/url-cmdline.git
+cd url-cmdline
+bundle
+```
 
-## Usage
+## 运行
+```sh
+rake
+```
 
-TODO: Write usage instructions here
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request

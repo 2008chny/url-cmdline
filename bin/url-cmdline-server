@@ -1,0 +1,77 @@
+#!/usr/bin/env ruby
+#encoding: utf-8
+
+require 'rubygems'
+require 'yaml'
+require 'sinatra'
+require 'net/telnet'
+
+config_path = File.expand_path(File.dirname(__FILE__) + '/../config')
+config = YAML.load_file(config_path + '/url-cmdline-server.yml')
+host = config['server']['host']
+port = config['server']['port']
+$var_host = config['varnish']['host']
+$var_port = config['varnish']['port']
+
+#配置服务器
+set :bind, host
+set :port, port
+set :root, File.dirname(__FILE__)
+set :app_file, __FILE__
+set :sessions, true
+#set :public_folder, Proc.new { File.join(root, "static") }
+#set :views, Proc.new { File.join(root, "templates") }
+set :environment, :production
+
+def ban ban_cmd 
+	server = Net::Telnet::new('Host' => $var_host,
+				  'Port' => $var_port,
+				  'Timeout' => 5,
+				  'Telnetmode' => false)
+
+	lines_to_send = [ban_cmd, 'quit']
+
+	lines_to_send.each do |line|
+		server.puts(line)
+		server.waitfor(/./) do |data|
+			#puts data
+		end
+	end
+	server.close
+end
+
+
+def execute_cmd cmd, param_list, host, path
+	if cmd == 'ban'
+		param = param_list[0]
+		if param == 'host'
+			ban_cmd = "ban req.http.host == \'#{host}\'"
+		else
+			ban_cmd = "ban.url #{path}"
+		end
+		ban ban_cmd
+		return 'ok'
+	end
+
+	'false'
+end
+
+get %r{/do$} do
+	cmd_url = request.path
+	match_str = cmd_url.match /(\/.*)cmd\/(.+)\/do$/
+	ori_path = match_str[1]
+	cmd_list = match_str[2]
+
+	return 'false' if cmd_list.nil?
+	return 'false' unless cmd_list.length
+
+	param_list = cmd_list.split '/'
+	cmd = param_list.shift
+
+	execute_cmd cmd, param_list, request.host, ori_path
+end
+
+
+
+
+
