@@ -18,10 +18,18 @@ set :bind, host
 set :port, port
 set :root, File.dirname(__FILE__)
 set :app_file, __FILE__
+set :logging, true
 set :sessions, true
 #set :public_folder, Proc.new { File.join(root, "static") }
 #set :views, Proc.new { File.join(root, "templates") }
 set :environment, :production
+
+log_file = File.expand_path(File.dirname(__FILE__) + '/../log/server.log')
+log = File.new(log_file, "a+") 
+$stdout.reopen(log)
+$stderr.reopen(log)
+$stderr.sync = true
+$stdout.sync = true
 
 def ban ban_cmd 
 	server = Net::Telnet::new('Host' => $var_host,
@@ -34,7 +42,7 @@ def ban ban_cmd
 	lines_to_send.each do |line|
 		server.puts(line)
 		server.waitfor(/./) do |data|
-			#puts data
+			#logger.info data
 		end
 	end
 	server.close
@@ -53,7 +61,7 @@ def execute_cmd cmd, param_list, host, path
 			ban_cmd = "ban.url #{path}"
 		end
 
-		puts "ban command: #{ban_cmd}"
+		logger.info "ban command: #{ban_cmd}"
 
 		ban ban_cmd
 		return true
@@ -68,8 +76,8 @@ get %r{/do$} do
 	ori_path = match_str[1]
 	cmd_list = match_str[2]
 
-	puts "ori_path: #{ori_path}"
-	puts "cmd_list: #{cmd_list}"
+	logger.info "ori_path: #{ori_path}"
+	logger.info "cmd_list: #{cmd_list}"
 
 	return 'false' if cmd_list.nil?
 	return 'false' unless cmd_list.length
@@ -83,7 +91,7 @@ get %r{/do$} do
 		else
 			to_url = "#{request.scheme}://#{request.host}:#{request.port}#{ori_path}"
 		end
-		puts "referer:  #{to_url}"
+		logger.info "referer:  #{to_url}"
 		redirect to(to_url)
 	else
 		return 'false'
