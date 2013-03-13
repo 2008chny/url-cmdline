@@ -24,7 +24,9 @@ set :sessions, true
 #set :views, Proc.new { File.join(root, "templates") }
 set :environment, :production
 
-log_file = File.expand_path(File.dirname(__FILE__) + '/../log/server.log')
+log_path = File.expand_path(File.dirname(__FILE__) + '/../log')
+FileUtils.mkdir_p log_path
+log_file = log_path + '/server.log'
 log = File.new(log_file, "a+") 
 $stdout.reopen(log)
 $stderr.reopen(log)
