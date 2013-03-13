@@ -47,20 +47,29 @@ def execute_cmd cmd, param_list, host, path
 		if param == 'host'
 			ban_cmd = "ban req.http.host == \'#{host}\'"
 		else
+			if path == ''
+				path = '/'
+			end
 			ban_cmd = "ban.url #{path}"
 		end
+
+		puts "ban command: #{ban_cmd}"
+
 		ban ban_cmd
-		return 'ok'
+		return true
 	end
 
-	'false'
+	false
 end
 
 get %r{/do$} do
 	cmd_url = request.path
-	match_str = cmd_url.match /(\/.*)cmd\/(.+)\/do$/
+	match_str = cmd_url.match /(.*)\/cmd\/(.+)\/do$/
 	ori_path = match_str[1]
 	cmd_list = match_str[2]
+
+	puts "ori_path: #{ori_path}"
+	puts "cmd_list: #{cmd_list}"
 
 	return 'false' if cmd_list.nil?
 	return 'false' unless cmd_list.length
@@ -68,7 +77,17 @@ get %r{/do$} do
 	param_list = cmd_list.split '/'
 	cmd = param_list.shift
 
-	execute_cmd cmd, param_list, request.host, ori_path
+	if execute_cmd(cmd, param_list, request.host, ori_path)
+		if request.port == 80
+			to_url = "#{request.scheme}://#{request.host}#{ori_path}"
+		else
+			to_url = "#{request.scheme}://#{request.host}:#{request.port}#{ori_path}"
+		end
+		puts "referer:  #{to_url}"
+		redirect to(to_url)
+	else
+		return 'false'
+	end
 end
 
 
