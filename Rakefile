@@ -17,6 +17,5 @@ task :default do
 end
 
 desc '从新启动服务器'
-task :restart do
+task :restart => [:stop, :start]
 
-end
